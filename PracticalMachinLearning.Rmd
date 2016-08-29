@@ -119,7 +119,7 @@ Neural Net
 Bayes Generalized Linear model
 Logit Boosted model
 
-```{r }
+```{r warning=FALSE}
 
 trainC <- trainControl(method = "cv", 
                        number = 2, 
@@ -132,7 +132,7 @@ rf <- train(classe ~ ., data = TrainSet, method = "rf", trControl= trainC)
 #Support Vector Machine
 svm <- train(classe ~ ., data = TrainSet, method = "svmRadial", trControl= trainC)
 #Neural Net
-NN <- train(classe ~ ., data = TrainSet, method = "nnet", trControl= trainC)
+NN <- train(classe ~ ., data = TrainSet, method = "nnet", trControl= trainC, verbose=FALSE )
 #Bayes Generalized Linear model
 bayesglm <- train(classe ~ ., data = TrainSet, method = "bayesglm", trControl= trainC)
 #Logit Boosted model
