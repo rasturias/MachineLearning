@@ -106,24 +106,20 @@ corrplot(corMatrix,
 corrAnal <- caret::findCorrelation(cor(TrainSet[, -52]), cutoff=0.8)
 names(TrainSet)[corrAnal]
 ```
-Variables above are highly correlated, therefore, PCA will be used in the pre-processing
+Variables above are highly correlated.
 
 ## CrossValidation
 
-To avoid overfitting and to reduce out of sample errors, TrainControl is used to perform 7-fold cross validation
 
 Models Test: 
 Random forest
-Support Vector Machine
 Neural Net
-Bayes Generalized Linear model
-Logit Boosted model
 
 ```{r warning=FALSE }
 
 trainC <- trainControl(method = "cv", 
                        verboseIter=FALSE , 
-                       preProcOptions="pca")
+                       number = 2)
 
 #RandomForest
 rf <- train(classe ~ ., data = TrainSet, method = "rf", trControl= trainC)
@@ -132,27 +128,23 @@ svm <- train(classe ~ ., data = TrainSet, method = "svmRadial", trControl= train
 #Neural Net
 NN <- train(classe ~ ., data = TrainSet, method = "nnet", trControl= trainC, verbose=FALSE )
 #Bayes Generalized Linear model
-bayesglm <- train(classe ~ ., data = TrainSet, method = "bayesglm", trControl= trainC)
+#bayesglm <- train(classe ~ ., data = TrainSet, method = "bayesglm", trControl= trainC)
 #Logit Boosted model
-logitboost <- train(classe ~ ., data = TrainSet, method = "LogitBoost", trControl= trainC)
+#logitboost <- train(classe ~ ., data = TrainSet, method = "LogitBoost", trControl= trainC)
 
 ```
 
 ### Accuracy Results
 ```{r }
-allModels <- c("Random Forest", "SVM","Neural Net","Bayes GLM","LogitBoost")
+allModels <- c("Random Forest", "SVM","Neural Net")
 Accuracy <- c(max(rf$results$Accuracy),
         max(svm$results$Accuracy),
-        max(NN$results$Accuracy),
-        max(bayesglm$results$Accuracy),
-        max(logitboost$results$Accuracy)
+        max(NN$results$Accuracy)
         )
         
 Kappa <- c(max(rf$results$Kappa),
         max(svm$results$Kappa),
-        max(NN$results$Kappa),
-        max(bayesglm$results$Kappa),
-        max(logitboost$results$Kappa)
+        max(NN$results$Kappa)
         )  
 
 results <- cbind(allModels,Accuracy,Kappa)
@@ -182,14 +174,15 @@ Now that we see that accuracy is very good lets predict for the real TEST
 #TEST DATA PREDICTION
 
 ```{r }
-#rfPrediction <- predict(rf, testData)
-#confMatRandForest <- confusionMatrix(rfPrediction, testData$classe)
-#confMatRandForest
+
+rfPrediction <- predict(rf, testData)
+confMatRandForest <- confusionMatrix(rfPrediction, testData$classe)
+confMatRandForest
 
 # plot Results
-#plot(confMatRandForest$table, col = confMatRandForest$byClass, 
-#     main = paste("Random Forest - Accuracy =",
-#                  round(confMatRandForest$overall['Accuracy'], 4)))
+plot(confMatRandForest$table, col = confMatRandForest$byClass, 
+     main = paste("Random Forest - Accuracy =",
+                  round(confMatRandForest$overall['Accuracy'], 4)))
 
 ```
 
