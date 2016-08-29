@@ -56,7 +56,7 @@ The exercises were performed by six male participants aged between 20-28 years, 
 
 All participants could easily simulate the mistakes in a safe and controlled manner by using a relatively light dumbbell (1.25kg)
 
-```{r }
+```{r cache=TRUE}
 # URL to get DataSets
 UrlTrainData <- "http://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv"
 UrlTestData  <- "http://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv"
@@ -122,10 +122,8 @@ Logit Boosted model
 ```{r warning=FALSE}
 
 trainC <- trainControl(method = "cv", 
-                       number = 1, 
                        verboseIter=FALSE , 
-                       preProcOptions="pca", 
-                       allowParallel=TRUE)
+                       preProcOptions="pca")
 
 #RandomForest
 rf <- train(classe ~ ., data = TrainSet, method = "rf", trControl= trainC)
