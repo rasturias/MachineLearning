@@ -119,7 +119,7 @@ Neural Net
 Bayes Generalized Linear model
 Logit Boosted model
 
-```{r warning=FALSE}
+```{r warning=FALSE }
 
 trainC <- trainControl(method = "cv", 
                        verboseIter=FALSE , 
