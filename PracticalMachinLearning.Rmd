@@ -1,0 +1,200 @@
+---
+title: "Practical Machine Learning"
+author: "Ramiro Asturias"
+date: "August 28, 2016"
+output: html_document
+---
+
+
+#Project Description
+
+Using devices such as Jawbone Up, Nike FuelBand, and Fitbit it is now possible to collect a large amount of data about personal activity relatively inexpensively. One thing that people regularly do is quantify how much of a particular activity they do, but they rarely quantify how well they do it. In this project, the goal will be to use data from accelerometers on the belt, forearm, arm, and dumbell of 6 participants. They were asked to perform barbell lifts correctly and incorrectly in 5 different ways. 
+
+
+#Project Objectives
+
+The goal of the project is to predict the manner in which they did the exercise. The following report describes the model was built, how it is cross validation, the expected out of sample error is, and why the best fitting model was chosen. 
+
+
+## Report
+
+### Loading Libraries 
+```{r warning=FALSE}
+library(abind)
+library(arm)
+library(caret)
+library(kernlab)
+library(klaR)
+library(rattle)
+library(randomForest)
+library(rpart)
+library(knitr)
+library(rpart.plot)
+library(corrplot)
+library(RColorBrewer)
+```
+## Set Working Environment
+
+```{r echo=FALSE}
+setwd("~/Personal/Coursera/Data Science/Machine Learning")
+set.seed(987654)
+```
+
+## Data Description and Importing
+
+Six young health participants were asked to perform one set of 10 repetitions of the Unilateral Dumbbell Biceps Curl in five different fashions: 
+
+Class A - > exactly according to the specification 
+Class B - > throwing the elbows to the front
+Class C - > lifting the dumbbell only halfway 
+Class D - > lowering the dumbbell only halfway
+Class E - > throwing the hips to the front .
+
+Class A corresponds to the specified execution of the exercise, while the other 4 classes correspond to common mistakes. 
+
+The exercises were performed by six male participants aged between 20-28 years, with little weight lifting experience. 
+
+All participants could easily simulate the mistakes in a safe and controlled manner by using a relatively light dumbbell (1.25kg)
+
+```{r }
+# URL to get DataSets
+UrlTrainData <- "http://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv"
+UrlTestData  <- "http://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv"
+
+# Get DataSets
+trainData <- read.csv(url(UrlTrainData))
+testData  <- read.csv(url(UrlTestData))
+
+```
+
+## Prepare and Clean Data
+
+```{r }
+# Create Partition 
+inTrain  <- createDataPartition(trainData$classe, p=0.8, list=FALSE)
+TrainSet <- trainData[inTrain, ]
+TestSet  <- trainData[-inTrain, ]
+
+#Remove Variables with Near Zero Variance
+helper <- nearZeroVar(TrainSet)
+TrainSet <- TrainSet[, -helper]
+TestSet  <- TestSet[, -helper]
+
+#Remove Variables that are mostly NA
+helper   <- sapply(TrainSet, function(x) mean(is.na(x))) > 0.90
+TrainSet <- TrainSet[, helper==FALSE]
+TestSet  <- TestSet[, helper==FALSE]
+
+#Remove identification variables (columns 1 to 7)
+TrainSet <- TrainSet[, -(1:7)]
+TestSet  <- TestSet[, -(1:7)]
+```
+
+After cleaning process the number of variables for the analysis is 52.
+
+## Correlation Analisys
+
+```{r }
+# Detect Correlation
+corMatrix <- cor(TrainSet[, -52])
+corrplot(corMatrix, 
+         order = "FPC", 
+         method = "color", 
+         type = "lower",
+         tl.col = "black",
+         tl.cex = 0.8)
+corrAnal <- caret::findCorrelation(cor(TrainSet[, -52]), cutoff=0.8)
+names(TrainSet)[corrAnal]
+```
+Variables above are highly correlated, therefore, PCA will be used in the pre-processing
+
+## CrossValidation
+
+To avoid overfitting and to reduce out of sample errors, TrainControl is used to perform 7-fold cross validation
+
+Models Test: 
+Random forest
+Support Vector Machine
+Neural Net
+Bayes Generalized Linear model
+Logit Boosted model
+
+```{r }
+
+trainC <- trainControl(method = "cv", 
+                       number = 2, 
+                       verboseIter=FALSE , 
+                       preProcOptions="pca", 
+                       allowParallel=TRUE)
+
+#RandomForest
+rf <- train(classe ~ ., data = TrainSet, method = "rf", trControl= trainC)
+#Support Vector Machine
+svm <- train(classe ~ ., data = TrainSet, method = "svmRadial", trControl= trainC)
+#Neural Net
+NN <- train(classe ~ ., data = TrainSet, method = "nnet", trControl= trainC)
+#Bayes Generalized Linear model
+bayesglm <- train(classe ~ ., data = TrainSet, method = "bayesglm", trControl= trainC)
+#Logit Boosted model
+logitboost <- train(classe ~ ., data = TrainSet, method = "LogitBoost", trControl= trainC)
+
+```
+
+### Accuracy Results
+```{r }
+allModels <- c("Random Forest", "SVM","Neural Net","Bayes GLM","LogitBoost")
+Accuracy <- c(max(rf$results$Accuracy),
+        max(svm$results$Accuracy),
+        max(NN$results$Accuracy),
+        max(bayesglm$results$Accuracy),
+        max(logitboost$results$Accuracy)
+        )
+        
+Kappa <- c(max(rf$results$Kappa),
+        max(svm$results$Kappa),
+        max(NN$results$Kappa),
+        max(bayesglm$results$Kappa),
+        max(logitboost$results$Kappa)
+        )  
+
+results <- cbind(allModels,Accuracy,Kappa)
+
+knitr::kable(results)
+
+```
+Random forest provides the best result. That is the model to predict for the test Set
+
+
+## Prediction for the Test Set
+```{r }
+
+#Before using the actual Test we will predict with the test portion of the training SeT
+rfPrediction <- predict(rf, TestSet)
+confMatRandForest <- confusionMatrix(rfPrediction, TestSet$classe)
+confMatRandForest
+
+# plot Results
+plot(confMatRandForest$table, col = confMatRandForest$byClass, 
+     main = paste("Random Forest - Accuracy =",
+                  round(confMatRandForest$overall['Accuracy'], 4)))
+
+```
+Now that we see that accuracy is very good lets predict for the real TEST
+
+#TEST DATA PREDICTION
+
+```{r }
+rfPrediction <- predict(rf, testData)
+confMatRandForest <- confusionMatrix(rfPrediction, testData$classe)
+confMatRandForest
+
+# plot Results
+plot(confMatRandForest$table, col = confMatRandForest$byClass, 
+     main = paste("Random Forest - Accuracy =",
+                  round(confMatRandForest$overall['Accuracy'], 4)))
+
+```
+
+## Conclusions
+
+The random forest model provides an outstanding accuracy in this case.
