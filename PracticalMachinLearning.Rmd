@@ -115,18 +115,18 @@ Models Test:
 Random forest
 Neural Net
 
-```{r warning=FALSE }
+```{r warning=FALSE  }
 
 trainC <- trainControl(method = "cv", 
                        verboseIter=FALSE , 
-                       number = 2)
+                       number = 1)
 
 #RandomForest
-rf <- train(classe ~ ., data = TrainSet, method = "rf", trControl= trainC)
+rf <- train(classe ~ ., data = TrainSet, method = "rf")
 #Support Vector Machine
-svm <- train(classe ~ ., data = TrainSet, method = "svmRadial", trControl= trainC)
+svm <- train(classe ~ ., data = TrainSet, method = "svmRadial")
 #Neural Net
-NN <- train(classe ~ ., data = TrainSet, method = "nnet", trControl= trainC, verbose=FALSE )
+NN <- train(classe ~ ., data = TrainSet, method = "nnet", verbose=FALSE )
 #Bayes Generalized Linear model
 #bayesglm <- train(classe ~ ., data = TrainSet, method = "bayesglm", trControl= trainC)
 #Logit Boosted model
@@ -175,14 +175,14 @@ Now that we see that accuracy is very good lets predict for the real TEST
 
 ```{r }
 
-rfPrediction <- predict(rf, testData)
-confMatRandForest <- confusionMatrix(rfPrediction, testData$classe)
-confMatRandForest
+#rfPrediction <- predict(rf, testData)
+#confMatRandForest <- confusionMatrix(rfPrediction, testData$classe)
+#confMatRandForest
 
 # plot Results
-plot(confMatRandForest$table, col = confMatRandForest$byClass, 
-     main = paste("Random Forest - Accuracy =",
-                  round(confMatRandForest$overall['Accuracy'], 4)))
+#plot(confMatRandForest$table, col = confMatRandForest$byClass, 
+#     main = paste("Random Forest - Accuracy =",
+#                  round(confMatRandForest$overall['Accuracy'], 4)))
 
 ```
 
