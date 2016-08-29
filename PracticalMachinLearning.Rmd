@@ -122,7 +122,7 @@ Logit Boosted model
 ```{r warning=FALSE}
 
 trainC <- trainControl(method = "cv", 
-                       number = 2, 
+                       number = 1, 
                        verboseIter=FALSE , 
                        preProcOptions="pca", 
                        allowParallel=TRUE)
@@ -184,14 +184,14 @@ Now that we see that accuracy is very good lets predict for the real TEST
 #TEST DATA PREDICTION
 
 ```{r }
-rfPrediction <- predict(rf, testData)
-confMatRandForest <- confusionMatrix(rfPrediction, testData$classe)
-confMatRandForest
+#rfPrediction <- predict(rf, testData)
+#confMatRandForest <- confusionMatrix(rfPrediction, testData$classe)
+#confMatRandForest
 
 # plot Results
-plot(confMatRandForest$table, col = confMatRandForest$byClass, 
-     main = paste("Random Forest - Accuracy =",
-                  round(confMatRandForest$overall['Accuracy'], 4)))
+#plot(confMatRandForest$table, col = confMatRandForest$byClass, 
+#     main = paste("Random Forest - Accuracy =",
+#                  round(confMatRandForest$overall['Accuracy'], 4)))
 
 ```
 
